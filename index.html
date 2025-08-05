@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>30 Oyunluk Platform - Giriş Gerekiyor</title>
+  <style>
+    /* Genel stil */
+    body {
+      margin: 0; padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(90deg, #1e3c72, #2a5298);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    #container {
+      max-width: 1000px;
+      width: 95vw;
+      background: rgba(10,10,30,0.9);
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 0 40px #357ABD88;
+      min-height: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    h1, h2 {
+      text-align: center;
+      margin: 0 0 1rem 0;
+      user-select: none;
+    }
+    /* Animasyonlu butonlar */
+    .game-btn, button.nav-btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(145deg, #4a90e2, #357ABD);
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(69, 138, 255, 0.6);
+      transition: all 0.3s ease;
+      font-size: 1rem;
+      user-select: none;
+      white-space: nowrap;
+    }
+    .game-btn:hover, button.nav-btn:hover {
+      background: linear-gradient(145deg, #357ABD, #4a90e2);
+      box-shadow: 0 6px 20px rgba(69, 138, 255, 0.9);
+      transform: translateY(-3px);
+    }
+    /* Nav oyun butonları */
+    #game-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      max-height: 200px;
+      overflow-y: auto;
+      padding-bottom: 0.5rem;
+    }
+    #game-area {
+      background: #111c;
+      padding: 1rem 2rem 2rem 2rem;
+      border-radius: 20px;
+      min-height: 350px;
+      overflow-y: auto;
+      box-sizing: border-box;
+    }
+    /* Tic Tac Toe */
+    .tic-board {
+      display: grid;
+      grid-template-columns: repeat(3, 60px);
+      gap: 5px;
+      justify-content: center;
+      margin: 0 auto 1rem auto;
+    }
+    .tic-cell {
+      width: 60px;
+      height: 60px;
+      font-size: 2rem;
+      background: #4a90e2;
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.3s ease;
+    }
+    .tic-cell:hover {
+      background: #357ABD;
+    }
+    /* Memory Cards */
+    .memory-card {
+      font-size: 2rem;
+      width: 70px;
+      height: 70px;
+      border-radius: 10px;
+      background: #357ABD;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.3s ease;
+    }
+    .memory-card.flipped {
+      background: #1abc9c;
+      color: #111;
+      cursor: default;
+    }
+    /* Color boxes */
+    #colorBoxes div {
+      transition: transform 0.3s ease;
+    }
+    #colorBoxes div:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 8px #fff;
+    }
+    /* Input fields */
+    input[type="text"], input[type="number"], input[type="password"] {
+      padding: 0.5rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: none;
+      width: 100%;
+      box-sizing: border-box;
+      margin-bottom: 1rem;
+    }
+    /* Scrollbar for game-buttons */
+    #game-buttons::-webkit-scrollbar {
+      height: 8px;
+    }
+    #game-buttons::-webkit-scrollbar-thumb {
+      background: #357ABD;
+      border-radius: 10px;
+    }
+    /* Scrollbar for game-area */
+    #game-area::-webkit-scrollbar {
+      width: 10px;
+    }
+    #game-area::-webkit-scrollbar-thumb {
+      background: #357ABD99;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="container">
+
+    <div id="login-area">
+      <h1>Giriş Yapınız</h1>
+      <input id="username" type="text" placeholder="Kullanıcı Adı" autocomplete="off" />
+      <input id="password" type="password" placeholder="Şifre" autocomplete="off" />
+      <button id="loginBtn" class="game-btn">Giriş</button>
+      <p id="loginError" style="color:#ff6666; text-align:center; user-select:none;"></p>
+    </div>
+
+    <div id="main-app" style="display:none; flex-direction: column; height: 100%;">
+      <h1>30 Oyunluk Platform</h1>
+      <div id="game-buttons"></div>
+      <div id="game-area">Bir oyun seçiniz.</div>
+    </div>
+
+  </div>
+
+<script>
+(() => {
+  // Sabit kullanıcı adı ve şifre
+  const USERNAME = "AREA";
+  const PASSWORD = "36451344516";
+
+  const loginArea = document.getElementById('login-area');
+  const mainApp = document.getElementById('main-app');
+  const loginBtn = document.getElementById('loginBtn');
+  const loginError = document.getElementById('loginError');
+
+  const gameButtonsDiv = document.getElementById('game-buttons');
+  const gameArea = document.getElementById('game-area');
+
+  // Oyun isimleri 30 adet
+  const games = [
+    'Tic Tac Toe', 'Taş Kağıt Makas', 'Hafıza Oyunu', 'Yılan Oyunu', 'Quiz Oyunu',
+    'Topu Yakala', 'Renkli Kutular', 'Hızlı Tıklama', 'Engelden Kaç', 'Matematik Testi',
+    'Balon Patlatma', 'Kelime Tahmin', 'Harf Sayısı', 'Renk Değiştirme', 'Basit Labirent',
+    'Sayı Tahmini', 'Denge Oyunu', 'Kutu Tıklama', 'Döner Topu Durdur', 'Hedef Vurma',
+    'Sudoku', 'Mayın Tarlası', 'Adam Asmaca', '4 İşlem Oyunu', 'Zamana Karşı Sayılar',
+    'Büyüyen Kutular', 'Refleks Testi', 'Eşitlik Bul', 'Sürükle Bırak', 'Hafıza Kartları'
+  ];
+
+  loginBtn.onclick = () => {
+    const user = document.getElementById('username').value.trim();
+    const pass = document.getElementById('password').value.trim();
+
+    if(user === USERNAME && pass === PASSWORD) {
+      loginArea.style.display = 'none';
+      mainApp.style.display = 'flex';
+      initializeGames();
+    } else {
+      loginError.textContent = "Kullanıcı adı veya şifre yanlış.";
+    }
+  };
+
+  // Butonları oluştur
+  function initializeGames() {
+    gameButtonsDiv.innerHTML = '';
+    games.forEach((name, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'nav-btn';
+      btn.textContent = `${i+1}. ${name}`;
+      btn.onclick = () => loadGame(i);
+      gameButtonsDiv.appendChild(btn);
+    });
+  }
+
+  // Yükle - Oyunları seç
+  function loadGame(index) {
+    switch(index) {
+      case 0: ticTacToe(); break;
+      case 1: rockPaperScissors(); break;
+      case 2: memoryGame(); break;
+      case 3: snakeGame(); break;
+      case 4: quizGame(); break;
+      case 5: topuYakala(); break;
+      case 6: renkliKutular(); break;
+      case 7: hizliTiklama(); break;
+      case 8: engeldenKac(); break;
+      case 9: matematikTesti(); break;
+      case 10: balonPatlatma(); break;
+      case 11: kelimeTahmin(); break;
+      case 12: harfSayisi(); break;
+      case 13: renkDegistirme(); break;
+      case 14: basitLabirent(); break;
+      case 15: sayiTahmini(); break;
+      case 16: dengeOyunu(); break;
+      case 17: kutuTiklama(); break;
+      case 18: donerTopuDurdur(); break;
+      case 19: hedefVurma(); break;
+      case 20: sudoku(); break;
+      case 21: mayinTarlasi(); break;
+      case 22: adamAsmaca(); break;
+      case 23: dortIslemOyunu(); break;
+      case 24: zamanaKarsiSayilar(); break;
+      case 25: buyuyenKutular(); break;
+      case 26: refleksTesti(); break;
+      case 27: esitlikBul(); break;
+      case 28: surukleBirak(); break;
+      case 29: hafizaKartlari(); break;
+      default:
+        gameArea.innerHTML = `<h2>${games[index]}</h2><p>Bu oyun henüz eklenmedi.</p>`;
+    }
+  }
+
+  /* --- 1. Tic Tac Toe --- */
+  function ticTacToe() {
+    gameArea.innerHTML = `
+      <h2>Tic Tac Toe</h2>
+      <div class="tic-board" id="ticBoard"></div>
+      <p id="ticMessage"></p>
+      <button class="game-btn" id="ticRestart">Yeniden Başlat</button>
+    `;
+    const board = document.getElementById('ticBoard');
+    const message = document.getElementById('ticMessage');
+    let currentPlayer = 'X';
+    let cells = Array(9).fill(null);
+
+    function checkWinner() {
+      const wins = [
+        [0,1,2],[3,4,5],[6,7,8],
+        [0,3,6],[1,4,7],[2,5,8],
+        [0,4,8],[2,4,6]
+      ];
+      for (const [a,b,c] of wins) {
+        if(cells[a] && cells[a] === cells[b] && cells[a] === cells[c]) {
+          return cells[a];
+        }
+      }
+      if(cells.every(c => c !== null)) return 'Berabere';
+      return null;
+    }
+
+    function renderBoard() {
+      board.innerHTML = '';
+      for(let i=0; i<9; i++) {
+        const cell = document.createElement('button');
+        cell.className = 'tic-cell';
+        cell.textContent = cells[i] || '';
+        cell.onclick = () => {
+          if(cells[i] || checkWinner()) return;
+          cells[i] = currentPlayer;
+          renderBoard();
+          const winner = checkWinner();
+          if(winner) {
+            message.textContent = winner === 'Berabere' ? 'Oyun berabere!' : `${winner} kazandı!`;
+          } else {
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            message.textContent = `Sıradaki: ${currentPlayer}`;
+          }
+        };
+        board.appendChild(cell);
+      }
+    }
+
+    document.getElementById('ticRestart').onclick = () => {
+      currentPlayer = 'X';
+      cells.fill(null);
+      message.textContent = `Sıradaki: ${currentPlayer}`;
+      renderBoard();
+    };
+
+    message.textContent = `Sıradaki: ${currentPlayer}`;
+    renderBoard();
+  }
+
+  /* --- 2. Taş Kağıt Makas --- */
+  function rockPaperScissors() {
+    gameArea.innerHTML = `
+      <h2>Taş Kağıt Makas</h2>
+      <div style="text-align:center; margin-bottom:1rem;">
+        <button class="game-btn" onclick="playRPS('Taş')">🪨 Taş</button>
+        <button class="game-btn" onclick="playRPS('Kağıt')">📄 Kağıt</button>
+        <button class="game-btn" onclick="playRPS('Makas')">✂️ Makas</button>
+      </div>
+      <p id="rpsResult" style="text-align:center; font-weight:bold;"></p>
+    `;
+    window.playRPS = function(userChoice) {
+      const choices = ['Taş', 'Kağıt', 'Makas'];
+      const computer = choices[Math.floor(Math.random()*3)];
+      let result = '';
+      if(userChoice === computer) result = 'Berabere!';
+      else if(
+        (userChoice === 'Taş' && computer === 'Makas') ||
+        (userChoice === 'Kağıt' && computer === 'Taş') ||
+        (userChoice === 'Makas' && computer === 'Kağıt')
+      ) result = 'Kazandınız!';
+      else result = 'Kaybettiniz!';
+      document.getElementById('rpsResult').textContent = `Bilgisayar: ${computer} - ${result}`;
+    };
+  }
+
+  /* --- 3. Hafıza Oyunu --- */
+  function memoryGame() {
+    const emojis = ['🐶','🐱','🐭','🐰','🦊','🐻','🐼','🐨'];
+    let cards = [...emojis, ...emojis].sort(() => Math.random() - 0.5);
+
+    gameArea.innerHTML = `
+      <h2>Hafıza Oyunu</h2>
+      <div id="memoryBoard" style="display:grid;grid-template-columns:repeat(4,70px);gap:10px;justify-content:center;"></div>
+      <p id="memoryMessage" style="text-align:center; margin-top:1rem; font-weight:bold;"></p>
+      <button class="game-btn" id="memoryRestart" style="display:block; margin:1rem auto 0 auto;">Yeniden Başlat</button>
+    `;
+
+    const board = document.getElementById('memoryBoard');
+    const message = document.getElementById('memoryMessage');
+    let firstCard = null, secondCard = null;
+    let lock = false;
+    let matchedPairs = 0;
+
+    function createCard(emoji, index) {
+      const card = document.createElement('button');
+      card.className = 'memory-card';
+      card.textContent = '?';
+      card.dataset.emoji = emoji;
+      card.onclick = () => {
+        if(lock || card === firstCard || card.classList.contains('flipped')) return;
+        card.textContent = emoji;
+        card.classList.add('flipped');
+        if(!firstCard) {
+          firstCard = card;
+        } else {
+          secondCard = card;
+          if(firstCard.dataset.emoji === secondCard.dataset.emoji) {
+            matchedPairs++;
+            firstCard = null;
+            secondCard = null;
+            if(matchedPairs === emojis.length) {
+              message.textContent = 'Tebrikler! Tüm çiftleri buldunuz.';
+            }
+          } else {
+            lock = true;
+            setTimeout(() => {
+              firstCard.textContent = '?';
+              secondCard.textContent = '?';
+              firstCard.classList.remove('flipped');
+              secondCard.classList.remove('flipped');
+              firstCard = null;
+              secondCard = null;
+              lock = false;
+            }, 1000);
+          }
+        }
+      };
+      return card;
+    }
+
+    function startGame() {
+      board.innerHTML = '';
+      matchedPairs = 0;
+      message.textContent = '';
+      firstCard = null; secondCard = null; lock = false;
+      cards = [...emojis, ...emojis].sort(() => Math.random() - 0.5);
+      cards.forEach((emoji, i) => {
+        board.appendChild(createCard(emoji, i));
+      });
+    }
+
+    document.getElementById('memoryRestart').onclick = startGame;
+    startGame();
+  }
+
+  /* --- 4. Yılan Oyunu --- */
+  function snakeGame() {
+    gameArea.innerHTML = `
+      <h2>Yılan Oyunu</h2>
+      <canvas id="snakeCanvas" width="300" height="300" style="background:#000; display:block; margin:0 auto; border-radius:10px;"></canvas>
+      <p id="snakeScore" style="text-align:center; font-weight:bold;">Puan: 0</p>
+      <p style="text-align:center; font-size:0.9rem; margin-top:-10px;">Yön tuşları ile oynayın.</p>
+      <button class="game-btn" id="snakeRestart" style="display:block; margin:1rem auto 0 auto;">Yeniden Başlat</button>
+    `;
+
+    const canvas = document.getElementById('snakeCanvas');
+    const ctx = canvas.getContext('2d');
+    const grid = 15;
+    const widthCount = canvas.width / grid;
+    const heightCount = canvas.height / grid;
+
+    let snake = [];
+    let dir = {x: 0, y: 0};
+    let food = {};
+    let score = 0;
+    let gameOver = false;
+    let intervalId;
+
+    function resetGame() {
+      snake = [{x: Math.floor(widthCount/2), y: Math.floor(heightCount/2)}];
+      dir = {x: 0, y: 0};
+      score = 0;
+      gameOver = false;
+      placeFood();
+      updateScore();
+      clearInterval(intervalId);
+      intervalId = setInterval(gameLoop, 130);
+    }
+
+    function placeFood() {
+      let x, y, conflict;
+      do {
+        x = Math.floor(Math.random() * widthCount);
+        y = Math.floor(Math.random() * heightCount);
+        conflict = snake.some(s => s.x === x && s.y === y);
+      } while(conflict);
+      food = {x, y};
+    }
+
+    function updateScore() {
+      document.getElementById('snakeScore').textContent = `Puan: ${score}`;
+    }
+
+    function draw() {
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#0f0';
+      snake.forEach(s => {
+        ctx.fillRect(s.x * grid, s.y * grid, grid, grid);
+      });
+
+      ctx.fillStyle = '#f00';
+      ctx.fillRect(food.x * grid, food.y * grid, grid, grid);
+    }
+
+    function gameLoop() {
+      if(gameOver) return;
+
+      let head = {x: snake[0].x + dir.x, y: snake[0].y + dir.y};
+
+      // Duvar kontrolü
+      if(head.x < 0 || head.y < 0 || head.x >= widthCount || head.y >= heightCount) {
+        endGame();
+        return;
+      }
+
+      // Kendi üzerine gelme kontrolü
+      if(snake.some(s => s.x === head.x && s.y === head.y)) {
+        endGame();
+        return;
+      }
+
+      snake.unshift(head);
+
+      // Yem kontrolü
+      if(head.x === food.x && head.y === food.y) {
+        score++;
+        updateScore();
+        placeFood();
+      } else {
+        snake.pop();
+      }
+
+      draw();
+    }
+
+    function endGame() {
+      gameOver = true;
+      alert(`Oyun Bitti! Puanınız: ${score}`);
+    }
+
+    document.addEventListener('keydown', e => {
+      if(gameOver) return;
+      switch(e.key) {
+        case 'ArrowUp': if(dir.y !== 1) dir = {x:0, y:-1}; break;
+        case 'ArrowDown': if(dir.y !== -1) dir = {x:0, y:1}; break;
+        case 'ArrowLeft': if(dir.x !== 1) dir = {x:-1, y:0}; break;
+        case 'ArrowRight': if(dir.x !== -1) dir = {x:1, y:0}; break;
+      }
+    });
+
+    document.getElementById('snakeRestart').onclick = resetGame;
+    resetGame();
+  }
+
+  /* --- 5. Quiz Oyunu --- */
+  function quizGame() {
+    const questions = [
+      {q:"Türkiye'nin başkenti neresidir?", a:["İstanbul", "Ankara", "İzmir", "Bursa"], correct:1},
+      {q:"Dünyanın en büyük okyanusu hangisidir?", a:["Atlantik", "Hint", "Arktik", "Pasifik"], correct:3},
+      {q:"En uzun nehir hangisidir?", a:["Nil", "Amazon", "Yangtze", "Mississippi"], correct:0},
+      {q:"Atomun çekirdeğinde hangi parçacıklar bulunur?", a:["Proton ve Nötron", "Elektron ve Proton", "Nötron ve Elektron", "Elektron ve Pozitron"], correct:0},
+      {q:"Güneş sistemindeki en büyük gezegen hangisidir?", a:["Satürn", "Jüpiter", "Mars", "Venüs"], correct:1},
+    ];
+
+    let index = 0;
+    let score = 0;
+
+    gameArea.innerHTML = `
+      <h2>Quiz Oyunu</h2>
+      <p id="quizQuestion" style="font-weight:bold; text-align:center;"></p>
+      <div id="quizAnswers" style="display:flex; flex-direction:column; gap:0.5rem; max-width:300px; margin: 0 auto;"></div>
+      <p id="quizResult" style="text-align:center; font-weight:bold; margin-top:1rem;"></p>
+      <button class="game-btn" id="quizNext" disabled>Sonraki</button>
+    `;
+
+    const questionEl = document.getElementById('quizQuestion');
+    const answersEl = document.getElementById('quizAnswers');
+    const resultEl = document.getElementById('quizResult');
+    const nextBtn = document.getElementById('quizNext');
+
+    function renderQuestion() {
+      resultEl.textContent = '';
+      nextBtn.disabled = true;
+      questionEl.textContent = questions[index].q;
+      answersEl.innerHTML = '';
+      questions[index].a.forEach((ans, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'game-btn';
+        btn.textContent = ans;
+        btn.onclick = () => {
+          if(nextBtn.disabled === false) return;
+          if(i === questions[index].correct) {
+            score++;
+            resultEl.textContent = 'Doğru!';
+          } else {
+            resultEl.textContent = 'Yanlış!';
+          }
+          nextBtn.disabled = false;
+        };
+        answersEl.appendChild(btn);
+      });
+    }
+
+    nextBtn.onclick = () => {
+      index++;
+      if(index >= questions.length) {
+        questionEl.textContent = 'Test bitti!';
+        answersEl.innerHTML = '';
+        resultEl.textContent = `Puanınız: ${score}/${questions.length}`;
+        nextBtn.disabled = true;
+      } else {
+        renderQuestion();
+      }
+    };
+
+    renderQuestion();
+  }
+
+  /* --- 6. Topu Yakala --- */
+  function topuYakala() {
+    gameArea.innerHTML = `
+      <h2>Topu Yakala</h2>
+      <canvas id="catchCanvas" width="400" height="300" style="background:#111; display:block; margin:0 auto; border-radius:12px;"></canvas>
+      <p id="catchScore" style="text-align:center; font-weight:bold;">Puan: 0</p>
+      <button class="game-btn" id="catchRestart" style="display:block; margin:1rem auto 0 auto;">Yeniden Başlat</button>
+      <p style="text-align:center; font-size:0.9rem; margin-top:-5px;">Fare ile topu yakalamaya çalışın</p>
+    `;
+
+    const canvas = document.getElementById('catchCanvas');
+    const ctx = canvas.getContext('2d');
+    const radius = 15;
+    let ball = {x: Math.random()* (canvas.width - 2*radius) + radius, y: Math.random()* (canvas.height - 2*radius) + radius};
+    let score = 0;
+    let running = true;
+
+    function drawBall() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#f00';
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, radius, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    function updateScore() {
+      document.getElementById('catchScore').textContent = `Puan: ${score}`;
+    }
+
+    function resetGame() {
+      score = 0;
+      running = true;
+      ball.x = Math.random()* (canvas.width - 2*radius) + radius;
+      ball.y = Math.random()* (canvas.height - 2*radius) + radius;
+      updateScore();
+      drawBall();
+    }
+
+    canvas.onmousemove = (e) => {
+      if(!running) return;
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      const dist = Math.hypot(mx - ball.x, my - ball.y);
+      if(dist <= radius) {
+        score++;
+        updateScore();
+        ball.x = Math.random()* (canvas.width - 2*radius) + radius;
+        ball.y = Math.random()* (canvas.height - 2*radius) + radius;
+        drawBall();
+      }
+    };
+
+    document.getElementById('catchRestart').onclick = () => {
+      resetGame();
+    };
+
+    resetGame();
+  }
+
+  /* --- 7. Renkli Kutular --- */
+  function renkliKutular() {
+    gameArea.innerHTML = `
+      <h2>Renkli Kutular</h2>
+      <div id="colorBoxes" style="display:flex; flex-wrap:wrap; justify-content:center; gap:10px;"></div>
+      <button class="game-btn" id="colorReset" style="display:block; margin:1rem auto 0 auto;">Renkleri Değiştir</button>
+      <p style="text-align:center; margin-top:10px;">Kutulara tıklayın ve renk değişsin.</p>
+    `;
+    const colorBoxesDiv = document.getElementById('colorBoxes');
+    const colors = ['#e74c3c','#3498db','#f1c40f','#1abc9c','#9b59b6','#e67e22','#2ecc71','#34495e'];
+
+    function createBoxes() {
+      colorBoxesDiv.innerHTML = '';
+      for(let i=0; i<16; i++) {
+        const box = document.createElement('div');
+        box.style.width = '60px';
+        box.style.height = '60px';
+        box.style.borderRadius = '12px';
+        box.style.backgroundColor = colors[Math.floor(Math.random()*colors.length)];
+        box.style.cursor = 'pointer';
+        box.onclick = () => {
+          box.style.backgroundColor = colors[Math.floor(Math.random()*colors.length)];
+        };
+        colorBoxesDiv.appendChild(box);
+      }
+    }
+    document.getElementById('colorReset').onclick = createBoxes;
+    createBoxes();
+  }
+
+  /* --- 8. Hızlı Tıklama --- */
+  function hizliTiklama() {
+    gameArea.innerHTML = `
+      <h2>Hızlı Tıklama</h2>
+      <button class="game-btn" id="clickButton" style="font-size:2rem; display:block; margin: 1rem auto; padding:1rem 2rem;">TIKLA!</button>
+      <p id="clickScore" style="text-align:center; font-weight:bold; margin-top:1rem;">Puan: 0</p>
+      <button class="game-btn" id="clickReset" style="display:block; margin:1rem auto 0 auto;">Yeniden Başlat</button>
+    `;
+
+    let score = 0;
+    let timeout;
+
+    const clickBtn = document.getElementById('clickButton');
+    const scoreEl = document.getElementById('clickScore');
+
+    clickBtn.onclick = () => {
+      score++;
+      scoreEl.textContent = `Puan: ${score}`;
+    };
+
+    document.getElementById('clickReset').onclick = () => {
+      score = 0;
+      scoreEl.textContent = `Puan: ${score}`;
+    };
+  }
+
+  /* --- 9. Engelden Kaç (Google Dinozor tarzı) --- */
+  function engeldenKac() {
+    gameArea.innerHTML = `
+      <h2>Engelden Kaç</h2>
+      <canvas id="dinoCanvas" width="600" height="150" style="background:#f7f7f7; display:block; margin:0 auto; border-radius:10px; border:2px solid #555;"></canvas>
+      <p style="text-align:center; font-size:0.9rem; margin-top:5px; color:#222;">Boşluk veya yukarı ok ile zıplayın. Aşağı ok ile eğilin.</p>
+      <p id="dinoScore" style="text-align:center; font-weight:bold; margin-top:0;">Puan: 0</p>
+      <button class="game-btn" id="dinoRestart" style="display:block; margin:1rem auto 0 auto;">Yeniden Başlat</button>
+    `;
+
+    const canvas = document.getElementById('dinoCanvas');
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+
+    let dino = {
+      x: 50,
+      y: height - 40,
+      width: 40,
+      height: 40,
+      vy: 0,
+      gravity: 1.2,
+      jumpPower: 18,
+      isJumping: false,
+      isDucking: false
+    };
+
+    let obstacles = [];
+    let obstacleTimer = 0;
+    let obstacleInterval = 90;
+    let score = 0;
+    let gameOver = false;
+    let animationFrameId;
+
+    function resetGame() {
+      dino.y = height - dino.height - 10;
+      dino.vy = 0;
+      dino.isJumping = false;
+      dino.isDucking = false;
+      obstacles = [];
+      obstacleTimer = 0;
+      score = 0;
+      gameOver = false;
+      cancelAnimationFrame(animationFrameId);
+      animationFrameId = requestAnimationFrame(gameLoop);
+      updateScore();
+    }
+
+    function updateScore() {
+      document.getElementById('dinoScore').textContent = `Puan: ${score}`;
+    }
+
+    function drawDino() {
+      ctx.fillStyle = '#333';
+      if(dino.isDucking) {
+        ctx.fillRect(dino.x, dino.y + dino.height/2, dino.width, dino.height/2);
+      } else {
+        ctx.fillRect(dino.x, dino.y, dino.width, dino.height);
+      }
+    }
+
+    function drawObstacles() {
+      ctx.fillStyle = '#555';
+      obstacles.forEach(ob => {
+        ctx.fillRect(ob.x, ob.y, ob.width, ob.height);
+      });
+    }
+
+    function updateObstacles() {
+      obstacles.forEach(ob => {
+        ob.x -= 6;
+      });
+      obstacles = obstacles.filter(ob => ob.x + ob.width > 0);
+      obstacleTimer++;
+      if(obstacleTimer > obstacleInterval) {
+        const heightRand = Math.random() * 30 + 20;
+        obstacles.push({
+          x: width,
+          y: height - heightRand - 10,
+          width: 15,
+          height: heightRand
+        });
+        obstacleTimer = 0;
+        if(obstacleInterval > 40) obstacleInterval -= 1; // Zamanla hızlanır
+      }
+    }
+
+    function checkCollision() {
+      for(const ob of obstacles) {
+        let dinoRect = {
+          x: dino.x,
+          y: dino.isDucking ? dino.y + dino.height/2 : dino.y,
+          width: dino.width,
+          height: dino.isDucking ? dino.height/2 : dino.height
+        };
+        let obRect = ob;
+        if(
+          dinoRect.x < obRect.x + obRect.width &&
+          dinoRect.x + dinoRect.width > obRect.x &&
+          dinoRect.y < obRect.y + obRect.height &&
+          dinoRect.y + dinoRect.height > obRect.y
+        ) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function gameLoop() {
+      ctx.clearRect(0, 0, width, height);
+      // Dino yerçekimi ve hareket
+      if(dino.isJumping) {
+        dino.vy -= dino.gravity;
+        dino.y -= dino.vy;
+        if(dino.y >= height - dino.height - 10) {
+          dino.y = height - dino.height - 10;
+          dino.isJumping = false;
+          dino.vy = 0;
+        }
+      }
+
+      updateObstacles();
+      drawDino();
+      drawObstacles();
+
+      if(checkCollision()) {
+        gameOver = true;
+        cancelAnimationFrame(animationFrameId);
+        alert(`Oyun Bitti! Puanınız: ${score}`);
+      }
+
+      if(!gameOver) {
+        score++;
+        updateScore();
+        animationFrameId = requestAnimationFrame(gameLoop);
+      }
+    }
+
+    document.onkeydown = (e) => {
+      if(gameOver) return;
+      if(e.code === 'Space' || e.key === 'ArrowUp') {
+        if(!dino.isJumping) {
+          dino.isJumping = true;
+          dino.vy = dino.jumpPower;
+        }
+      }
+      if(e.key === 'ArrowDown') {
+        dino.isDucking = true;
+      }
+    };
+    document.onkeyup = (e) => {
+      if(e.key === 'ArrowDown') {
+        dino.isDucking = false;
+      }
+    };
+
+    document.getElementById('dinoRestart').onclick = resetGame;
+    resetGame();
+  }
+
+  /* --- 10. Matematik Testi --- */
+  function matematikTesti() {
+    const ops = ['+', '-', '*'];
+    let score = 0, total = 0;
+
+    gameArea.innerHTML = `
+      <h2>Matematik Testi</h2>
+      <p id="mathQuestion" style="font-weight:bold; text-align:center;"></p>
+      <input type="number" id="mathAnswer" autocomplete="off" style="display:block; margin:0.5rem auto; font-size:1.2rem; padding:0.3rem; width:150px; border-radius:10px; border:none;" />
+      <button class="game-btn" id="mathCheck" style="display:block; margin:0.5rem auto;">Kontrol Et</button>
+      <p id="mathResult" style="text-align:center; font-weight:bold; margin-top:1rem;"></p>
+      <p id="mathScore" style="text-align:center; font-weight:bold; margin-top:-10px;">Puan: 0 / 0</p>
+      <button class="game-btn" id="mathRestart" style="display:block; margin:1rem auto 0 auto;">Yeniden Başlat</button>
+    `;
+
+    const questionEl = document.getElementById('mathQuestion');
+    const answerEl = document.getElementById('mathAnswer');
+    const resultEl = document.getElementById('mathResult');
+    const scoreEl = document.getElementById('mathScore');
+    const checkBtn = document.getElementById('mathCheck');
+    const restartBtn = document.getElementById('mathRestart');
+
+    let currentAnswer = null;
+
+    function newQuestion() {
+      let a = Math.floor(Math.random() * 20) + 1;
+      let b = Math.floor(Math.random() * 20) + 1;
+      let op = ops[Math.floor(Math.random() * ops.length)];
+      let questionStr = `${a} ${op} ${b} = ?`;
+      currentAnswer = eval(`${a} ${op} ${b}`);
+      questionEl.textContent = questionStr;
+      answerEl.value = '';
+      resultEl.textContent = '';
+    }
+
+    checkBtn.onclick = () => {
+      const val = Number(answerEl.value);
+      if(isNaN(val)) {
+        resultEl.textContent = "Lütfen sayı girin.";
+        return;
+      }
+      total++;
+      if(val === currentAnswer) {
+        score++;
+        resultEl.textContent = "Doğru!";
+      } else {
+        resultEl.textContent = `Yanlış! Doğru cevap: ${currentAnswer}`;
+      }
+      scoreEl.textContent = `Puan: ${score} / ${total}`;
+      newQuestion();
+    };
+
+    restartBtn.onclick = () => {
+      score = 0;
+      total = 0;
+      scoreEl.textContent = `Puan: 0 / 0`;
+      newQuestion();
+      resultEl.textContent = '';
+    };
+
+    newQuestion();
+  }
+
+  /* --- 11. Balon Patlatma --- */
+  function balonPatlatma() {
+    gameArea.innerHTML = `
+      <h2>Balon Patlatma</h2>
+      <canvas id="balloonCanvas" width="400" height="400" style="background:#def; display:block; margin:0 auto; border-radius:12px;"></canvas>
+      <p id="balloonScore" style="text-align:center; font-weight:bold;">Puan: 0</p>
+      <button class="game-btn" id="balloonRestart" style="display:block; margin:1rem auto 0 auto;">Yeniden Başlat</button>
+      <p style="text-align:center; font-size:0.9rem; margin-top:-5px;">Balonlara tıklayarak puan kazanın.</p>
+    `;
+
+    const canvas = document.getElementById('balloonCanvas');
+    const ctx = canvas.getContext('2d');
+    let balloons = [];
+    let score = 0;
+    let animationFrameId;
+
+    function createBalloon() {
+      return {
+        x: Math.random() * (canvas.width - 40) + 20,
+        y: canvas.height + 20,
+        radius: 20,
+        speed: 1 + Math.random() * 1.5,
+        color: `hsl(${Math.random()*360}, 80%, 60%)`,
+        popped: false,
+      };
+    }
+
+    function resetGame() {
+      balloons = [];
+      score = 0;
+      for(let i=0; i<10; i++) {
+        balloons.push(createBalloon());
+      }
+      updateScore();
+      if(animationFrameId) cancelAnimationFrame(animationFrameId);
+      animationFrameId = requestAnimationFrame(gameLoop);
+    }
+
+    function updateScore() {
+      document.getElementById('balloonScore').textContent = `Puan: ${score}`;
+    }
+
+    function gameLoop() {
+      ctx.clearRect(0,0,canvas.width, canvas.height);
+
+      balloons.forEach(b => {
+        if(!b.popped) {
+          b.y -= b.speed;
+          if(b.y + b.radius < 0) {
+            b.y = canvas.height + 20;
+            b.x = Math.random() * (canvas.width - 40) + 20;
+          }
+          ctx.beginPath();
+          ctx.fillStyle = b.color;
+          ctx.arc(b.x, b.y, b.radius, 0, Math.PI*2);
+          ctx.fill();
+        }
+      });
+
+      animationFrameId = requestAnimationFrame(gameLoop);
+    }
+
+    canvas.onclick = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+
+      balloons.forEach(b => {
+        if(!b.popped) {
+          const dist = Math.hypot(mx - b.x, my - b.y);
+          if(dist < b.radius) {
+            b.popped = true;
+            score++;
+            updateScore();
+          }
+        }
+      });
+    };
+
+    document.getElementById('balloonRestart').onclick = resetGame;
+    resetGame();
+  }
+
+  /* --- 12. Kelime Tahmin --- */
+  function kelimeTahmin() {
+    const words = ['javascript', 'html', 'css', 'python', 'unity', 'react', 'node', 'socket'];
+    let word = '';
+    let guesses = [];
+    let remaining = 6;
+
+    gameArea.innerHTML = `
+      <h2>Kelime Tahmin</h2>
+      <p id="guessWord" style="text-align:center; font-weight:bold; font-size:1.5rem; letter-spacing: 0.3rem;"></p>
+      <input type="text" id="guessInput" maxlength="1" autocomplete="off" style="display:block; margin:1rem auto; font-size:1.2rem; width:50px; text-align:center; border-radius:10px; border:none;" />
+      <p id="guessMessage" style="text-align:center; font-weight:bold;"></p>
+      <p style="text-align:center;">Kalan hakkınız: <span id="remainingCount"></span></p>
+      <button class="game-btn" id="guessRestart" style="display:block; margin:1rem auto;">Yeniden Başlat</button>
+    `;
+
+    const guessWord = document.getElementById('guessWord');
+    const guessInput = document.getElementById('guessInput');
+    const guessMessage = document.getElementById('guessMessage');
+    const remainingCount = document.getElementById('remainingCount');
+    const guessRestart = document.getElementById('guessRestart');
+
+    function updateDisplay() {
+      let display = '';
+      for(const ch of word) {
+        display += guesses.includes(ch) ? ch.toUpperCase() : '_';
+        display += ' ';
+      }
+      guessWord.textContent = display.trim();
+      remainingCount.textContent = remaining;
+    }
+
+    function startGame() {
+      word = words[Math.floor(Math.random()*words.length)];
+      guesses = [];
+      remaining = 6;
+      guessMessage.textContent = '';
+      updateDisplay();
+      guessInput.value = '';
+      guessInput.focus();
+    }
+
+    guessInput.onkeyup = e => {
+      let ch = guessInput.value.toLowerCase();
+      guessInput.value = '';
+      if(ch && /^[a-z]$/.test(ch)) {
+        if(guesses.includes(ch)) {
+          guessMessage.textContent = 'Bu harfi zaten tahmin ettiniz.';
+          return;
+        }
+        guesses.push(ch);
+        if(!word.includes(ch)) {
+          remaining--;
+          guessMessage.textContent = 'Yanlış tahmin!';
+        } else {
+          guessMessage.textContent = 'Doğru tahmin!';
+        }
+        updateDisplay();
+        if(remaining <= 0) {
+          guessMessage.textContent = `Kaybettiniz! Doğru kelime: ${word.toUpperCase()}`;
+          guessInput.disabled = true;
+        }
+        else if(word.split('').every(c => guesses.includes(c))) {
+          guessMessage.textContent = 'Tebrikler, kazandınız!';
+          guessInput.disabled = true;
+        }
+      }
+    };
+
+    guessRestart.onclick = () => {
+      guessInput.disabled = false;
+      startGame();
+    };
+
+    startGame();
+  }
+
+  /* --- 13. Harf Sayısı --- */
+  function harfSayisi() {
+    gameArea.innerHTML = `
+      <h2>Harf Sayısı</h2>
+      <textarea id="textInput" rows="5" style="width:100%; border-radius:12px; padding:10px; font-size:1.2rem;"></textarea>
+      <p style="margin-top:10px; font-weight:bold;">Toplam Harf Sayısı: <span id="charCount">0</span></p>
+      <button class="game-btn" id="clearText" style="display:block; margin:1rem auto 0 auto;">Temizle</button>
+    `;
+
+    const textInput = document.getElementById('textInput');
+    const charCount = document.getElementById('charCount');
+    const clearText = document.getElementById('clearText');
+
+    textInput.addEventListener('input', () => {
+      charCount.textContent = textInput.value.length;
+    });
+
+    clearText.onclick = () => {
+      textInput.value = '';
+      charCount.textContent = '0';
+      textInput.focus();
+    };
+  }
+
+  /* --- 14. Renk Değiştirme --- */
+  function renkDegistirme() {
+    gameArea.innerHTML = `
+      <h2>Renk Değiştirme</h2>
+      <input type="color" id="colorPicker" value="#357ABD" style="display:block; margin:1rem auto; width:100px; height:100px; border:none; cursor:pointer; border-radius:12px;">
+      <div id="colorBox" style="width:150px; height:150px; margin:2rem auto; border-radius:20px; background:#357ABD; box-shadow: 0 0 20px #357ABD;"></div>
+    `;
+
+    const colorPicker = document.getElementById('colorPicker');
+    const colorBox = document.getElementById('colorBox');
+
+    colorPicker.oninput = () => {
+      colorBox.style.backgroundColor = colorPicker.value;
+      colorBox.style.boxShadow = `0 0 30px ${colorPicker.value}`;
+    };
+  }
+
+  /* --- 15. Basit Labirent --- */
+  function basitLabirent() {
+    gameArea.innerHTML = `
+      <h2>Basit Labirent</h2>
+      <canvas id="mazeCanvas" width="300" height="300" style="background:#222; display:block; margin:0 auto; border-radius:15px;"></canvas>
+      <p style="text-align:center; margin-top:10px; font-weight:bold;">Yön tuşları ile çıkışa ulaşın.</p>
+      <button class="game-btn" id="mazeRestart" style="display:block; margin:1rem auto 0 auto;">Yeniden Başlat</button>
+    `;
+
+    const canvas = document.getElementById('mazeCanvas');
+    const ctx = canvas.getContext('2d');
+    const size = 10;
+    const cellSize = canvas.width / size;
+
+    // 0: boş, 1: duvar, 2: çıkış
+    const maze = [
+      [1,1,1,1,1,1,1,1,1,1],
+      [1,0,0,0,1,0,0,0,0,1],
+      [1,0,1,0,1,0,1,1,0,1],
+      [1,0,1,0,0,0,0,1,0,1],
+      [1,0,1,1,1,1,0,1,0,1],
+      [1,0,0,0,0,1,0,1,0,1],
+      [1,1,1,1,0,1,0,1,0,1],
+      [1,0,0,1,0,0,0,0,0,1],
+      [1,0,0,0,0,1,1,1,0,1],
+      [1,1,1,1,1,1,1,2,1,1]
+    ];
+
+    let player = {x:1, y:1};
+    let gameWon = false;
+
+    function drawMaze() {
+      for(let y=0; y<size; y++) {
+        for(let x=0; x<size; x++) {
+          if(maze[y][x] === 1) {
+            ctx.fillStyle = '#555';
+          } else if(maze[y][x] === 2) {
+            ctx.fillStyle = '#0f0';
+          } else {
+            ctx.fillStyle = '#222';
+          }
+          ctx.fillRect(x*cellSize, y*cellSize, cellSize, cellSize);
+        }
+      }
+      ctx.fillStyle = '#f00';
+      ctx.beginPath();
+      ctx.arc(player.x*cellSize + cellSize/2, player.y*cellSize + cellSize/2, cellSize/3, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    function movePlayer(dx, dy) {
+      if(gameWon) return;
+      const nx = player.x + dx;
+      const ny = player.y + dy;
+      if(nx < 0 || ny < 0 || nx >= size || ny >= size) return;
+      if(maze[ny][nx] !== 1) {
+        player.x = nx;
+        player.y = ny;
+        if(maze[ny][nx] === 2) {
+          gameWon = true;
+          alert('Tebrikler! Labirenti tamamladınız.');
+        }
+      }
+      drawMaze();
+    }
+
+    document.onkeydown = e => {
+      switch(e.key) {
+        case 'ArrowUp': movePlayer(0, -1); break;
+        case 'ArrowDown': movePlayer(0, 1); break;
+        case 'ArrowLeft': movePlayer(-1, 0); break;
+        case 'ArrowRight': movePlayer(1, 0); break;
+      }
+    };
+
+    document.getElementById('mazeRestart').onclick = () => {
+      player = {x:1, y:1};
+      gameWon = false;
+      drawMaze();
+    };
+
+    drawMaze();
+  }
+
+  /* --- 16. Basit FPS (Mouse ile Dönme) --- */
+  function basitFPS() {
+    gameArea.innerHTML = `
+      <h2>Basit FPS</h2>
+      <p style="text-align:center;">Fareyi hareket ettirerek bakış yönünü değiştirin.</p>
+      <div id="fpsInfo" style="text-align:center; font-weight:bold; margin-top:1rem;">Yatay açı: 0°, Dikey açı: 0°</div>
+      <button class="game-btn" id="fpsLock">Fareyi Kilitle</button>
+    `;
+
+    let yaw = 0;
+    let pitch = 0;
+    const info = document.getElementById('fpsInfo');
+    const lockBtn = document.getElementById('fpsLock');
+
+    function updateInfo() {
+      info.textContent = `Yatay açı: ${yaw.toFixed(1)}°, Dikey açı: ${pitch.toFixed(1)}°`;
+    }
+
+    function onMouseMove(e) {
+      yaw += e.movementX * 0.1;
+      pitch -= e.movementY * 0.1;
+      if(pitch > 89) pitch = 89;
+      if(pitch < -89) pitch = -89;
+      updateInfo();
+    }
+
+    lockBtn.onclick = () => {
+      if(document.pointerLockElement === gameArea) {
+        document.exitPointerLock();
+        lockBtn.textContent = 'Fareyi Kilitle';
+        gameArea.removeEventListener('mousemove', onMouseMove);
+      } else {
+        gameArea.requestPointerLock();
+        lockBtn.textContent = 'Fareyi Kilit Aç';
+        gameArea.addEventListener('mousemove', onMouseMove);
+      }
+    };
+
+    updateInfo();
+  }
+
+  /* --- 17. Engelden Kaç (Kullanıcı Girişli) --- */
+  function loginPrompt() {
+    gameArea.innerHTML = `
+      <h2>Kullanıcı Girişi</h2>
+      <p style="text-align:center;">Lütfen giriş yapın</p>
+      <input id="username" placeholder="Kullanıcı Adı" style="display:block; margin:0.5rem auto; padding:0.5rem; font-size:1.1rem; border-radius:10px; width:200px;" />
+      <input id="password" type="password" placeholder="Şifre" style="display:block; margin:0.5rem auto; padding:0.5rem; font-size:1.1rem; border-radius:10px; width:200px;" />
+      <button class="game-btn" id="loginBtn" style="display:block; margin:1rem auto;">Giriş Yap</button>
+      <p id="loginMessage" style="text-align:center; font-weight:bold; color:red;"></p>
+    `;
+
+    document.getElementById('loginBtn').onclick = () => {
+      const user = document.getElementById('username').value.trim();
+      const pass = document.getElementById('password').value.trim();
+      const message = document.getElementById('loginMessage');
+      if(user === 'AREA' && pass === '36451344516') {
+        message.style.color = 'green';
+        message.textContent = 'Giriş başarılı! Oyuna yönlendiriliyorsunuz...';
+        setTimeout(() => engeldenKac(true), 1000);
+      } else {
+        message.style.color = 'red';
+        message.textContent = 'Kullanıcı adı veya şifre yanlış.';
+      }
+    };
+  }
+
+  /* --- Ana Menü ve Başlangıç --- */
+  function mainMenu() {
+    app.innerHTML = `
+      <h1 style="text-align:center;">Oyunlar</h1>
+      <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:12px; max-width:700px; margin:0 auto;">
+        <button class="game-btn" onclick="ticTacToe()">Tic Tac Toe</button>
+        <button class="game-btn" onclick="rockPaperScissors()">Taş Kağıt Makas</button>
+        <button class="game-btn" onclick="memoryGame()">Hafıza Oyunu</button>
+        <button class="game-btn" onclick="snakeGame()">Yılan Oyunu</button>
+        <button class="game-btn" onclick="quizGame()">Quiz Oyunu</button>
+        <button class="game-btn" onclick="topuYakala()">Topu Yakala</button>
+        <button class="game-btn" onclick="renkliKutular()">Renkli Kutular</button>
+        <button class="game-btn" onclick="hizliTiklama()">Hızlı Tıklama</button>
+        <button class="game-btn" onclick="loginPrompt()">Engelden Kaç (Girişli)</button>
+        <button class="game-btn" onclick="matematikTesti()">Matematik Testi</button>
+        <button class="game-btn" onclick="balonPatlatma()">Balon Patlatma</button>
+        <button class="game-btn" onclick="kelimeTahmin()">Kelime Tahmin</button>
+        <button class="game-btn" onclick="harfSayisi()">Harf Sayısı</button>
+        <button class="game-btn" onclick="renkDegistirme()">Renk Değiştirme</button>
+        <button class="game-btn" onclick="basitLabirent()">Basit Labirent</button>
+        <button class="game-btn" onclick="basitFPS()">Basit FPS</button>
+      </div>
+    `;
+    gameArea.innerHTML = '';
+  }
+
+  mainMenu();
+})();
+</script>
+
+</body>
+</html>
