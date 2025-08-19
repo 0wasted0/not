@@ -1,810 +1,98 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>AREA - Notlar & Hatırlatıcı & Ayarlar</title>
-<style>
-  :root {
-    --color-bg-light: #f0f2f5;
-    --color-bg-dark: #121212;
-    --color-text-light: #222;
-    --color-text-dark: #eee;
-    --primary: #0078d7;
-    --danger: #e03131;
-    --note-bg: #fff;
-    --note-bg-dark: #333;
-    --note-border: #ccc;
-    --note-border-dark: #555;
-  }
-  body {
-    margin:0; padding:0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: var(--color-bg-light);
-    color: var(--color-text-light);
-    transition: background 0.3s, color 0.3s;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
-  body.dark {
-    background: var(--color-bg-dark);
-    color: var(--color-text-dark);
-  }
-
-  header {
-    background: var(--primary);
-    color: white;
-    padding: 12px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  header h1 {
-    margin: 0;
-    font-weight: 700;
-    font-size: 1.6rem;
-  }
-  #settingsBtn {
-    font-size: 1.5rem;
-    background: transparent;
-    border: none;
-    color: white;
-    cursor: pointer;
-    position: relative;
-  }
-  #settingsPanel {
-    position: absolute;
-    top: 50px;
-    right: 20px;
-    background: white;
-    color: black;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    padding: 20px;
-    width: 280px;
-    display: none;
-    z-index: 999;
-    user-select: none;
-  }
-  body.dark #settingsPanel {
-    background: #222;
-    color: #eee;
-  }
-  #settingsPanel label {
-    display: block;
-    margin: 10px 0 5px;
-    font-weight: 600;
-  }
-  #settingsPanel input[type="password"],
-  #settingsPanel select {
-    width: 100%;
-    padding: 8px;
-    font-size: 1rem;
-    border-radius: 6px;
-    border: 1px solid var(--note-border);
-    box-sizing: border-box;
-  }
-  body.dark #settingsPanel input[type="password"],
-  body.dark #settingsPanel select {
-    background: #333;
-    border-color: var(--note-border-dark);
-    color: white;
-  }
-  #settingsPanel button {
-    margin-top: 12px;
-    width: 100%;
-    padding: 10px;
-    border: none;
-    background: var(--primary);
-    color: white;
-    font-weight: 700;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-  #settingsPanel button:hover {
-    background: #005fa3;
-  }
-
-  /* Auth Box */
-  #authBox {
-    max-width: 380px;
-    margin: 80px auto;
-    background: white;
-    padding: 30px 35px;
-    border-radius: 15px;
-    box-shadow: 0 0 30px rgba(0,0,0,0.1);
-    color: var(--color-text-light);
-  }
-  body.dark #authBox {
-    background: #222;
-    color: var(--color-text-dark);
-  }
-  #authBox h2 {
-    text-align: center;
-    margin-bottom: 25px;
-    font-weight: 700;
-  }
-  #authBox input {
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 15px;
-    border-radius: 8px;
-    border: 1px solid var(--note-border);
-    font-size: 1rem;
-  }
-  body.dark #authBox input {
-    background: #333;
-    border-color: var(--note-border-dark);
-    color: white;
-  }
-  #authBox button {
-    width: 100%;
-    padding: 14px;
-    background: var(--primary);
-    border: none;
-    border-radius: 8px;
-    color: white;
-    font-weight: 700;
-    font-size: 1.1rem;
-    cursor: pointer;
-  }
-  #authBox button:hover {
-    background: #005fa3;
-  }
-  #authBox .switchText {
-    margin-top: 12px;
-    text-align: center;
-    color: var(--primary);
-    cursor: pointer;
-    font-weight: 600;
-  }
-  body.dark #authBox .switchText {
-    color: #3ddc97;
-  }
-  #authError {
-    color: #e03131;
-    font-weight: 600;
-    margin-bottom: 10px;
-    text-align: center;
-  }
-
-  /* Main Dashboard */
-  main {
-    max-width: 1100px;
-    margin: 30px auto;
-    display: none;
-    flex-grow: 1;
-    padding: 0 15px 40px;
-    display: flex;
-    gap: 20px;
-    height: calc(100vh - 130px);
-    box-sizing: border-box;
-  }
-  body.dark main {
-    color: var(--color-text-dark);
-  }
-  #sidebar {
-    width: 320px;
-    background: var(--note-bg);
-    border-radius: 12px;
-    padding: 15px;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    box-shadow: 0 0 15px rgba(0,0,0,0.1);
-  }
-  body.dark #sidebar {
-    background: var(--note-bg-dark);
-    box-shadow: 0 0 15px rgba(255,255,255,0.1);
-  }
-  #sidebar h2 {
-    margin-bottom: 15px;
-    font-weight: 700;
-    font-size: 1.3rem;
-  }
-  #btnsContainer {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
-  }
-  button.actionBtn {
-    flex: 1;
-    background: var(--primary);
-    color: white;
-    border: none;
-    padding: 12px;
-    border-radius: 8px;
-    font-weight: 700;
-    cursor: pointer;
-    user-select: none;
-    transition: background 0.3s;
-  }
-  button.actionBtn:hover {
-    background: #005fa3;
-  }
-  #notesList {
-    flex-grow: 1;
-    overflow-y: auto;
-  }
-  .noteItem {
-    padding: 10px 12px;
-    border-radius: 8px;
-    background: #eee;
-    margin-bottom: 10px;
-    cursor: pointer;
-    user-select: none;
-    color: var(--color-text-light);
-    box-shadow: 0 0 3px rgba(0,0,0,0.1);
-    transition: background 0.25s;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  body.dark .noteItem {
-    background: #444;
-    color: var(--color-text-dark);
-    box-shadow: 0 0 3px rgba(255,255,255,0.1);
-  }
-  .noteItem.active {
-    background: var(--primary);
-    color: white;
-  }
-
-  #noteContent {
-    flex-grow: 1;
-    background: var(--note-bg);
-    border-radius: 12px;
-    padding: 20px;
-    box-sizing: border-box;
-    box-shadow: 0 0 25px rgba(0,0,0,0.1);
-    display: flex;
-    flex-direction: column;
-  }
-  body.dark #noteContent {
-    background: var(--note-bg-dark);
-    box-shadow: 0 0 25px rgba(255,255,255,0.1);
-  }
-  #noteContent h3 {
-    margin-bottom: 10px;
-  }
-  #noteTitleInput {
-    font-size: 1.4rem;
-    padding: 8px 10px;
-    margin-bottom: 15px;
-    border-radius: 8px;
-    border: 1px solid var(--note-border);
-    outline: none;
-    width: 100%;
-  }
-  body.dark #noteTitleInput {
-    background: #444;
-    border-color: var(--note-border-dark);
-    color: white;
-  }
-  #noteTextArea {
-    flex-grow: 1;
-    resize: none;
-    padding: 12px;
-    font-size: 1.1rem;
-    border-radius: 10px;
-    border: 1px solid var(--note-border);
-    outline: none;
-  }
-  body.dark #noteTextArea {
-    background: #444;
-    border-color: var(--note-border-dark);
-    color: white;
-  }
-  #deleteNoteBtn {
-    margin-top: 15px;
-    background: var(--danger);
-    border: none;
-    color: white;
-    font-weight: 700;
-    padding: 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    user-select: none;
-  }
-  #deleteNoteBtn:hover {
-    background: #b02626;
-  }
-
-  /* Hatırlatma bölümü (noteContent ile birlikte kullanılıyor) */
-  #reminderDate {
-    margin-top: 12px;
-    font-weight: 600;
-  }
-  #reminderDate input[type="datetime-local"] {
-    width: 100%;
-    padding: 8px;
-    font-size: 1rem;
-    border-radius: 6px;
-    border: 1px solid var(--note-border);
-    box-sizing: border-box;
-  }
-  body.dark #reminderDate input[type="datetime-local"] {
-    background: #444;
-    border-color: var(--note-border-dark);
-    color: white;
-  }
-
-  /* Responsive */
-  @media (max-width: 720px) {
-    main {
-      flex-direction: column;
-      height: auto;
-    }
-    #sidebar {
-      width: 100%;
-      height: 320px;
-      margin-bottom: 20px;
-      overflow-y: scroll;
-    }
-    #noteContent {
-      height: 380px;
-    }
-  }
-</style>
+    <meta charset="UTF-8">
+    <title>Test Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .login-box {
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            width: 300px;
+        }
+        input[type=text], input[type=password] {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        input[type=submit] {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            background: #4CAF50;
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        input[type=submit]:hover {
+            background: #45a049;
+        }
+        .message {
+            margin-top: 15px;
+            font-weight: bold;
+            color: red;
+        }
+    </style>
 </head>
 <body>
-
-<header>
-  <h1>AREA</h1>
-  <button id="settingsBtn" title="Ayarlar ⚙️" style="display:none;">⚙️</button>
-  <div id="settingsPanel" aria-label="Ayarlar Paneli">
-    <form id="settingsForm">
-      <label for="currentPassword">Mevcut Şifre</label>
-      <input type="password" id="currentPassword" placeholder="Mevcut şifreniz" autocomplete="current-password" />
-
-      <label for="newPassword">Yeni Şifre</label>
-      <input type="password" id="newPassword" placeholder="Yeni şifre" autocomplete="new-password" />
-
-      <label for="themeSelect">Tema Seç</label>
-      <select id="themeSelect" aria-label="Tema Seçimi">
-        <option value="light">Açık Tema</option>
-        <option value="dark">Koyu Tema</option>
-      </select>
-
-      <button type="submit">Ayarları Kaydet</button>
-    </form>
-  </div>
-</header>
-
-<!-- Giriş/Kayıt kutusu -->
-<div id="authBox" role="form" aria-label="Giriş veya kayıt formu">
-  <h2 id="formTitle">Giriş Yap</h2>
-  <input id="usernameInput" type="text" placeholder="Kullanıcı Adı" autocomplete="username" aria-label="Kullanıcı Adı" spellcheck="false" autocorrect="off" />
-  <input id="passwordInput" type="password" placeholder="Şifre" autocomplete="current-password" aria-label="Şifre" />
-  <button id="authBtn" aria-live="polite">Giriş Yap</button>
-  <div id="authError" role="alert" aria-live="assertive"></div>
-  <div id="switchText" class="switchText" tabindex="0" role="button" aria-pressed="false">Kayıt olmak için tıklayın</div>
-</div>
-
-<!-- Ana panel -->
-<main>
-  <aside id="sidebar" aria-label="Notlar Listesi">
-    <h2>Notlar & Hatırlatıcılar</h2>
-    <div id="btnsContainer">
-      <button id="addNoteBtn" class="actionBtn" aria-label="Yeni Not Oluştur">+ Not</button>
-      <button id="addReminderBtn" class="actionBtn" aria-label="Yeni Hatırlatma Oluştur">⏰ Hatırlatma</button>
-    </div>
-    <div id="notesList" tabindex="0"></div>
-  </aside>
-
-  <section id="noteContent" style="display:none;" aria-live="polite" aria-label="Seçilen Not İçeriği">
-    <input type="text" id="noteTitleInput" placeholder="Başlık" spellcheck="false" autocorrect="off" />
-    <textarea id="noteTextArea" placeholder="İçerik..."></textarea>
-
-    <div id="reminderDate" style="display:none;">
-      <label for="reminderDateInput">Hatırlatma Tarih ve Saat</label>
-      <input type="datetime-local" id="reminderDateInput" />
+    <div class="login-box">
+        <h2>Login Test</h2>
+        <form id="loginForm">
+            <input type="text" id="username" placeholder="Kullanıcı Adı" required>
+            <input type="password" id="password" placeholder="Şifre" required>
+            <input type="submit" value="Giriş Yap">
+            <div class="message" id="message"></div>
+        </form>
     </div>
 
-    <button id="deleteNoteBtn" aria-label="Notu Sil">Notu Sil</button>
-  </section>
-</main>
+    <script>
+        // Tek bir hesap için kullanıcı adı ve şifre
+        const correctUser = "0wasted0";
+        const correctPass = "Test123!"; // Buraya kendi şifreni koyabilirsin
 
-<script>
-  // Buton sesleri için küçük ses dosyaları (base64 inline, böylece ek dosya gerekmez)
-  const clickSoundData = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAA..."; 
-  // Not: Buraya istersen gerçek bir base64 WAV sesi koyabilirsin ya da başka küçük ses
+        // Basit brute-force önleme (3 yanlış deneme)
+        let attemptCount = 0;
+        const maxAttempts = 3;
+        let lockTime = 0;
 
-  // Ses objesi
-  const clickAudio = new Audio(clickSoundData);
+        document.getElementById("loginForm").addEventListener("submit", function(e) {
+            e.preventDefault();
 
-  // Elemanlar
-  const authBox = document.getElementById("authBox");
-  const mainContent = document.querySelector("main");
-  const formTitle = document.getElementById("formTitle");
-  const authBtn = document.getElementById("authBtn");
-  const switchText = document.getElementById("switchText");
-  const authError = document.getElementById("authError");
-  const settingsBtn = document.getElementById("settingsBtn");
-  const settingsPanel = document.getElementById("settingsPanel");
-  const settingsForm = document.getElementById("settingsForm");
-  const currentPasswordInput = document.getElementById("currentPassword");
-  const newPasswordInput = document.getElementById("newPassword");
-  const themeSelect = document.getElementById("themeSelect");
+            if(lockTime > Date.now()) {
+                document.getElementById("message").textContent = "Çok fazla yanlış deneme. Lütfen bekleyin.";
+                return;
+            }
 
-  const notesList = document.getElementById("notesList");
-  const addNoteBtn = document.getElementById("addNoteBtn");
-  const addReminderBtn = document.getElementById("addReminderBtn");
-  const noteContentSection = document.getElementById("noteContent");
-  const noteTitleInput = document.getElementById("noteTitleInput");
-  const noteTextArea = document.getElementById("noteTextArea");
-  const reminderDateDiv = document.getElementById("reminderDate");
-  const reminderDateInput = document.getElementById("reminderDateInput");
-  const deleteNoteBtn = document.getElementById("deleteNoteBtn");
+            const user = document.getElementById("username").value;
+            const pass = document.getElementById("password").value;
 
-  let isLogin = true;
-  let currentUser = null;
-  let notes = [];
-  let selectedNoteId = null;
-  let isReminderMode = false; // Not mu hatırlatma mı?
+            if(user === correctUser && pass === correctPass) {
+                document.getElementById("message").style.color = "green";
+                document.getElementById("message").textContent = "Giriş Başarılı!";
+                attemptCount = 0; // sıfırla
+            } else {
+                attemptCount++;
+                document.getElementById("message").style.color = "red";
+                document.getElementById("message").textContent = `Yanlış kullanıcı adı veya şifre. Deneme: ${attemptCount}`;
 
-  // Tema yükle
-  function loadTheme(theme) {
-    if(theme === "dark") {
-      document.body.classList.add("dark");
-      themeSelect.value = "dark";
-      settingsPanel.classList.add("dark");
-      authBox.classList.add("dark");
-    } else {
-      document.body.classList.remove("dark");
-      themeSelect.value = "light";
-      settingsPanel.classList.remove("dark");
-      authBox.classList.remove("dark");
-    }
-  }
-
-  // Kullanıcı var mı kontrol
-  function userExists(username) {
-    return localStorage.getItem("user_" + username) !== null;
-  }
-
-  // Şifre kontrolü
-  function checkPassword(username, password) {
-    let data = localStorage.getItem("user_" + username);
-    if(!data) return false;
-    let userObj = JSON.parse(data);
-    return userObj.password === password;
-  }
-
-  // Şifre değiştir
-  function changePassword(currentPass, newPass) {
-    if(!currentUser) return false;
-    let data = localStorage.getItem("user_" + currentUser);
-    if(!data) return false;
-    let userObj = JSON.parse(data);
-    if(userObj.password !== currentPass) {
-      alert("Mevcut şifre yanlış!");
-      return false;
-    }
-    userObj.password = newPass;
-    localStorage.setItem("user_" + currentUser, JSON.stringify(userObj));
-    alert("Şifre başarıyla değiştirildi!");
-    newPasswordInput.value = "";
-    currentPasswordInput.value = "";
-    return true;
-  }
-
-  // Notları yükle
-  function loadNotes() {
-    if(!currentUser) return;
-    let data = localStorage.getItem("notes_" + currentUser);
-    notes = data ? JSON.parse(data) : [];
-    renderNotesList();
-    hideNoteContent();
-  }
-
-  // Notları kaydet
-  function saveNotes() {
-    if(!currentUser) return;
-    localStorage.setItem("notes_" + currentUser, JSON.stringify(notes));
-  }
-
-  // Not listesini çiz
-  function renderNotesList() {
-    notesList.innerHTML = "";
-    if(notes.length === 0) {
-      notesList.innerHTML = "<p>Henüz not yok. Yeni not ya da hatırlatma oluşturabilirsiniz.</p>";
-      return;
-    }
-    notes.forEach(note => {
-      const div = document.createElement("div");
-      div.className = "noteItem";
-      if(note.id === selectedNoteId) div.classList.add("active");
-      div.textContent = note.title || "(Başlıksız Not)";
-      // Hatırlatmalar farklı gösterim için
-      if(note.isReminder) div.style.fontStyle = "italic";
-      div.onclick = () => selectNote(note.id);
-      notesList.appendChild(div);
-    });
-  }
-
-  // Not seç
-  function selectNote(id) {
-    selectedNoteId = id;
-    renderNotesList();
-    const note = notes.find(n => n.id === id);
-    if(note) {
-      noteContentSection.style.display = "flex";
-      noteTitleInput.value = note.title;
-      noteTextArea.value = note.text;
-      if(note.isReminder) {
-        isReminderMode = true;
-        reminderDateDiv.style.display = "block";
-        if(note.reminderDate) {
-          // ISO string to local datetime-local format
-          const dt = new Date(note.reminderDate);
-          const tzOffset = dt.getTimezoneOffset() * 60000;
-          const localISOTime = (new Date(dt - tzOffset)).toISOString().slice(0,16);
-          reminderDateInput.value = localISOTime;
-        } else {
-          reminderDateInput.value = "";
-        }
-      } else {
-        isReminderMode = false;
-        reminderDateDiv.style.display = "none";
-      }
-    }
-  }
-
-  // Not içeriğini gizle
-  function hideNoteContent() {
-    selectedNoteId = null;
-    noteContentSection.style.display = "none";
-    noteTitleInput.value = "";
-    noteTextArea.value = "";
-    reminderDateInput.value = "";
-    reminderDateDiv.style.display = "none";
-    isReminderMode = false;
-  }
-
-  // Yeni not oluştur
-  function createNewNote() {
-    playClickSound();
-    isReminderMode = false;
-    const title = prompt("Yeni not başlığı giriniz:");
-    if(title === null) return; // İptal edildi
-    const newNote = {
-      id: Date.now().toString(),
-      title: title.trim() || "(Başlıksız Not)",
-      text: "",
-      isReminder: false,
-      reminderDate: null
-    };
-    notes.push(newNote);
-    saveNotes();
-    renderNotesList();
-    selectNote(newNote.id);
-  }
-
-  // Yeni hatırlatma oluştur
-  function createNewReminder() {
-    playClickSound();
-    isReminderMode = true;
-    const title = prompt("Yeni hatırlatma başlığı giriniz:");
-    if(title === null) return; // İptal edildi
-    const newReminder = {
-      id: Date.now().toString(),
-      title: title.trim() || "(Başlıksız Hatırlatma)",
-      text: "",
-      isReminder: true,
-      reminderDate: null
-    };
-    notes.push(newReminder);
-    saveNotes();
-    renderNotesList();
-    selectNote(newReminder.id);
-  }
-
-  // Notu güncelle
-  function updateSelectedNote() {
-    if(!selectedNoteId) return;
-    const note = notes.find(n => n.id === selectedNoteId);
-    if(!note) return;
-    note.title = noteTitleInput.value.trim() || (note.isReminder ? "(Başlıksız Hatırlatma)" : "(Başlıksız Not)");
-    note.text = noteTextArea.value;
-    if(isReminderMode) {
-      note.reminderDate = reminderDateInput.value ? new Date(reminderDateInput.value).toISOString() : null;
-    } else {
-      note.reminderDate = null;
-    }
-    saveNotes();
-    renderNotesList();
-  }
-
-  // Not sil
-  function deleteSelectedNote() {
-    if(!selectedNoteId) return;
-    if(!confirm("Bu notu silmek istediğinize emin misiniz?")) return;
-    notes = notes.filter(n => n.id !== selectedNoteId);
-    saveNotes();
-    hideNoteContent();
-    renderNotesList();
-  }
-
-  // Giriş yap veya kayıt ol
-  function authenticate() {
-    playClickSound();
-    authError.textContent = "";
-    const username = document.getElementById("usernameInput").value.trim();
-    const password = document.getElementById("passwordInput").value.trim();
-
-    if(!username || !password){
-      authError.textContent = "Lütfen tüm alanları doldurun!";
-      return;
-    }
-
-    if(isLogin){
-      if(userExists(username)){
-        if(checkPassword(username, password)){
-          currentUser = username;
-          openDashboard();
-          startReminderChecker();
-        } else {
-          authError.textContent = "Şifre yanlış!";
-        }
-      } else {
-        authError.textContent = "Kullanıcı bulunamadı!";
-      }
-    } else {
-      if(userExists(username)){
-        authError.textContent = "Bu kullanıcı zaten kayıtlı!";
-      } else {
-        // Kayıt yap
-        localStorage.setItem("user_" + username, JSON.stringify({password, theme:"light"}));
-        alert("Kayıt başarılı! Şimdi giriş yapabilirsiniz.");
-        toggleForm();
-      }
-    }
-  }
-
-  // Formu değiştir (giriş/kayıt)
-  function toggleForm(){
-    isLogin = !isLogin;
-    formTitle.textContent = isLogin ? "Giriş Yap" : "Kayıt Ol";
-    authBtn.textContent = isLogin ? "Giriş Yap" : "Kayıt Ol";
-    switchText.textContent = isLogin ? "Kayıt olmak için tıklayın" : "Zaten hesabın var mı? Giriş yap";
-    authError.textContent = "";
-    document.getElementById("usernameInput").value = "";
-    document.getElementById("passwordInput").value = "";
-  }
-
-  // Panel aç
-  function openDashboard() {
-    authBox.style.display = "none";
-    mainContent.style.display = "flex";
-    settingsBtn.style.display = "inline-block";
-    loadNotes();
-
-    // Tema kullanıcı ayarı varsa uygula
-    let userData = JSON.parse(localStorage.getItem("user_" + currentUser));
-    if(userData && userData.theme) {
-      loadTheme(userData.theme);
-    } else {
-      loadTheme("light");
-    }
-  }
-
-  // Çıkış yap
-  function logout() {
-    currentUser = null;
-    notes = [];
-    selectedNoteId = null;
-    authBox.style.display = "block";
-    mainContent.style.display = "none";
-    settingsBtn.style.display = "none";
-    loadTheme("light");
-    toggleForm();
-    hideNoteContent();
-    stopReminderChecker();
-  }
-
-  // Ayarlar panelini aç/kapa
-  function toggleSettings() {
-    if(settingsPanel.style.display === "block") {
-      settingsPanel.style.display = "none";
-    } else {
-      settingsPanel.style.display = "block";
-    }
-  }
-
-  // Ayarları kaydet
-  function saveSettings(e){
-    e.preventDefault();
-    const currentPass = currentPasswordInput.value.trim();
-    const newPass = newPasswordInput.value.trim();
-    const selectedTheme = themeSelect.value;
-
-    if(newPass.length > 0){
-      if(newPass.length < 4){
-        alert("Şifre en az 4 karakter olmalı.");
-        return;
-      }
-      if(!currentPass){
-        alert("Mevcut şifrenizi girin!");
-        return;
-      }
-      if(!changePassword(currentPass, newPass)) {
-        return;
-      }
-    }
-
-    // Tema kaydet ve uygula
-    let userData = JSON.parse(localStorage.getItem("user_" + currentUser)) || {};
-    userData.theme = selectedTheme;
-    localStorage.setItem("user_" + currentUser, JSON.stringify(userData));
-    loadTheme(selectedTheme);
-
-    alert("Ayarlar kaydedildi.");
-    settingsPanel.style.display = "none";
-  }
-
-  // Buton sesi çal
-  function playClickSound(){
-    try {
-      clickAudio.currentTime = 0;
-      clickAudio.play();
-    } catch(e){
-      // Hata varsa sessiz geç
-    }
-  }
-
-  // Hatırlatıcı kontrolü ve bildirim
-  let reminderInterval = null;
-  function startReminderChecker(){
-    if(!("Notification" in window)){
-      console.warn("Bildirimler desteklenmiyor.");
-      return;
-    }
-    Notification.requestPermission();
-    if(reminderInterval) clearInterval(reminderInterval);
-    reminderInterval = setInterval(() => {
-      const now = new Date();
-      notes.forEach(note => {
-        if(note.isReminder && note.reminderDate){
-          const reminderTime = new Date(note.reminderDate);
-          if(reminderTime <= now && !note.notified){
-            // Bildirim göster
-            new Notification("Hatırlatma: " + (note.title || "Başlıksız Hatırlatma"), {
-              body: note.text || "",
-              icon: "https://cdn-icons-png.flaticon.com/512/2921/2921222.png"
-            });
-            note.notified = true; // sadece bir kere bildir
-            saveNotes();
-          }
-        }
-      });
-    }, 30 * 1000); // 30 saniyede bir kontrol
-  }
-  function stopReminderChecker(){
-    if(reminderInterval){
-      clearInterval(reminderInterval);
-      reminderInterval = null;
-    }
-  }
-
-  // Eventler
-  authBtn.onclick = authenticate;
-  switchText.onclick = toggleForm;
-  switchText.onkeydown = (e) => { if(e.key === "Enter" || e.key === " ") toggleForm(); };
-  settingsBtn.onclick = () => { playClickSound(); toggleSettings(); };
-  settingsForm.onsubmit = saveSettings;
-  addNoteBtn.onclick = () => { playClickSound(); createNewNote(); };
-  addReminderBtn.onclick = () => { playClickSound(); createNewReminder(); };
-  deleteNoteBtn.onclick = () => { playClickSound(); deleteSelectedNote(); };
-  noteTitleInput.oninput = updateSelectedNote;
-  noteTextArea.oninput = updateSelectedNote;
-  reminderDateInput.oninput = updateSelectedNote;
-
-  // Sayfa yüklendiğinde tema varsayılanı
-  loadTheme("light");
-</script>
-
+                if(attemptCount >= maxAttempts) {
+                    lockTime = Date.now() + 10000; // 10 saniye kilitle
+                    document.getElementById("message").textContent = "Çok fazla yanlış deneme. 10 saniye bekleyin.";
+                    attemptCount = 0;
+                }
+            }
+        });
+    </script>
 </body>
 </html>
